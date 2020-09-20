@@ -12,24 +12,24 @@ import {
 } from './utils.spec';
 
 import {
-  ExampleModel, ExampleView
+  AnnotoriusModel, AnnotoriusView
 } from '../../src/'
 
 
 describe('Example', () => {
 
-  describe('ExampleModel', () => {
+  describe('AnnotoriusModel', () => {
 
     it('should be createable', () => {
-      let model = createTestModel(ExampleModel);
-      expect(model).to.be.an(ExampleModel);
+      let model = createTestModel(AnnotoriusModel);
+      expect(model).to.be.an(AnnotoriusModel);
       expect(model.get('value')).to.be('Hello World');
     });
 
     it('should be createable with a value', () => {
       let state = { value: 'Foo Bar!' }
-      let model = createTestModel(ExampleModel, state);
-      expect(model).to.be.an(ExampleModel);
+      let model = createTestModel(AnnotoriusModel, state);
+      expect(model).to.be.an(AnnotoriusModel);
       expect(model.get('value')).to.be('Foo Bar!');
     });
 

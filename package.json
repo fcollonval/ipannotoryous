@@ -13,9 +13,9 @@
     "dist/*.js",
     "css/*.css"
   ],
-  "homepage": "https://github.com//ipannotoryous",
+  "homepage": "https://github.com/fcollonval/ipannotoryous",
   "bugs": {
-    "url": "https://github.com//ipannotoryous/issues"
+    "url": "https://github.com/fcollonval/ipannotoryous/issues"
   },
   "license": "BSD-3-Clause",
   "author": {
@@ -26,7 +26,7 @@
   "types": "./lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com//ipannotoryous"
+    "url": "https://github.com/fcollonval/ipannotoryous"
   },
   "scripts": {
     "build": "npm run build:lib && npm run build:nbextension",
@@ -51,7 +51,8 @@
     "watch:nbextension": "webpack --watch"
   },
   "dependencies": {
-    "@jupyter-widgets/base": "^1.1.10 || ^2 || ^3"
+    "@jupyter-widgets/base": "^1.1.10 || ^2 || ^3",
+    "@recogito/annotorious": "^2.1.1"
   },
   "devDependencies": {
     "@lumino/application": "^1.6.0",
