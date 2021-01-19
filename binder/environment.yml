@@ -9,6 +9,7 @@ dependencies:
   - jupyterlab >=2,<3.0.0a0
   # labextension build dependencies
   - nodejs >=14,<15
+  - yarn
   - pip
   - wheel
   # Fix binder
