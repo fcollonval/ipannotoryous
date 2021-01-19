@@ -6,7 +6,7 @@ import {
   DOMWidgetView,
   ISerializers,
 } from '@jupyter-widgets/base';
-import { Annotorious } from '@recogito/annotorious';
+import { init } from '@recogito/annotorious';
 
 // import './annotorious.min.css';
 // import '@recogito/annotorious/dist/annotations.min.css';
@@ -30,6 +30,8 @@ export class AnnotoriusModel extends DOMWidgetModel {
       width: '',
       height: '',
       value: new DataView(new ArrayBuffer(0)),
+      author: {},
+      drawingTool: 'rect',
     };
   }
 
@@ -55,40 +57,55 @@ export class AnnotoriusView extends DOMWidgetView {
     this.el.classList.add('annotorius-widget');
     this._img = document.createElement<'img'>('img');
     this.el.append(this._img);
-    this._annotator = new Annotorious({
+    this._annotator = init({
       image: this._img,
+      // headless: true,
+      locale: 'auto',
+      // formatter: () => {
+      //   return { style: 'stroke: red' };
+      // },
     });
-    this._annotator.addAnnotation({
-      '@context': 'http://www.w3.org/ns/anno.jsonld',
-      id: '#a88b22d0-6106-4872-9435-c78b5e89fede',
-      type: 'Annotation',
-      body: [
-        {
-          type: 'TextualBody',
-          value: "It's Hallstatt in Upper Austria",
-        },
-      ],
-      target: {
-        selector: {
-          type: 'FragmentSelector',
-          conformsTo: 'http://www.w3.org/TR/media-frags/',
-          value: 'xywh=pixel:5,5,25,25',
-        },
-      },
-    });
+    // this._annotator.addAnnotation({
+    //   '@context': 'http://www.w3.org/ns/anno.jsonld',
+    //   id: '#a88b22d0-6106-4872-9435-c78b5e89fede',
+    //   type: 'Annotation',
+    //   body: [
+    //     {
+    //       type: 'TextualBody',
+    //       value: "It's Hallstatt in Upper Austria",
+    //     },
+    //   ],
+    //   target: {
+    //     selector: {
+    //       type: 'FragmentSelector',
+    //       conformsTo: 'http://www.w3.org/TR/media-frags/',
+    //       value: 'xywh=pixel:5,5,25,25',
+    //     },
+    //   },
+    // });
 
     this.valueChanged();
+    this.model.on('change:drawingTool', this.drawingToolChanged, this);
     this.model.on('change:value', this.valueChanged, this);
   }
 
   remove(): void {
+    if (this._annotator) {
+      this._annotator.destroy();
+    }
     if (this._img.src) {
       URL.revokeObjectURL(this._img.src);
     }
     super.remove();
   }
 
-  valueChanged() {
+  drawingToolChanged(): void {
+    if (this._annotator) {
+      this._annotator.setDrawingTool(this.model.get('drawingTool'));
+    }
+  }
+
+  valueChanged(): void {
     let url;
     const format = this.model.get('format');
     const value = this.model.get('value');
