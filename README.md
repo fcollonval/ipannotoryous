@@ -3,7 +3,7 @@
 
 [![Build Status](https://travis-ci.org//ipannotoryous.svg?branch=master)](https://travis-ci.org//ipannotoryous)
 [![codecov](https://codecov.io/gh//ipannotoryous/branch/master/graph/badge.svg)](https://codecov.io/gh//ipannotoryous)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/ipannotoryous/master?filepath=examples)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/ipannotoryous/master?filepath=examples/introduction.ipynb)
 
 A annotation Jupyter Widget based on Annotorius.
 
