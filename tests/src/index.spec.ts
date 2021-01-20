@@ -3,23 +3,15 @@
 
 import expect = require('expect.js');
 
-import {
-  // Add any needed widget imports here (or from controls)
-} from '@jupyter-widgets/base';
+// import // Add any needed widget imports here (or from controls)
+// '@jupyter-widgets/base';
 
-import {
-  createTestModel
-} from './utils.spec';
+import { createTestModel } from './utils.spec';
 
-import {
-  AnnotoriusModel, AnnotoriusView
-} from '../../src/'
-
+import { AnnotoriusModel } from '../../src/';
 
 describe('Example', () => {
-
   describe('AnnotoriusModel', () => {
-
     it('should be createable', () => {
       let model = createTestModel(AnnotoriusModel);
       expect(model).to.be.an(AnnotoriusModel);
@@ -27,12 +19,10 @@ describe('Example', () => {
     });
 
     it('should be createable with a value', () => {
-      let state = { value: 'Foo Bar!' }
+      let state = { value: 'Foo Bar!' };
       let model = createTestModel(AnnotoriusModel, state);
       expect(model).to.be.an(AnnotoriusModel);
       expect(model.get('value')).to.be('Foo Bar!');
     });
-
   });
-
 });

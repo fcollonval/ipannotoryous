@@ -25,9 +25,18 @@ module.exports = function (config) {
     singleRun: true,
     logLevel: config.LOG_INFO,
 
+    customLaunchers: {
+      ChromeCI: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
 
     karmaTypescriptConfig: {
       tsconfig: 'tests/tsconfig.json',
+      coverageOptions: {
+        instrumentation: false
+      },
       reports: {
         "text-summary": "",
         "html": "coverage",

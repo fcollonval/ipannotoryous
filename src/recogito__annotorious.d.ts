@@ -1,37 +1,39 @@
 declare module '@recogito/annotorious';
 
-/*
-export class Annotorious {
-    constructor(config: any);
+// ImageSnippet.js
 
-    addAnnotation(annotation: any, readOnly: bool);
+// export function getSnippet(image: any, element: HTMLElement);
 
-    clearAuthInfo();
+// export class Annotorious {
+//     constructor(config: any);
 
-    destroy();
+//     addAnnotation(annotation: any, readOnly: bool);
 
-    getAnnotations(): any;
+//     clearAuthInfo();
 
-    loadAnnotations(url: string);
+//     destroy();
 
-    off(event, callback);
+//     getAnnotations(): any;
 
-    on(event, handler);
+//     loadAnnotations(url: string);
 
-    removeAnnotation(annotation);
+//     off(event, callback);
 
-    selectAnnotation(annotationOrId);
+//     on(event, handler);
 
-    setAnnotations(annotations);
+//     removeAnnotation(annotation);
 
-    setAuthInfo(authinfo);
+//     selectAnnotation(annotationOrId);
 
-    setDrawingTool(shape);
+//     setAnnotations(annotations);
 
-    setVisible(visible: bool);
+//     setAuthInfo(authinfo);
 
-    setServerTime(timestamp);
-}
+//     setDrawingTool(shape);
 
-export function init(config): Annotorious;
-*/
+//     setVisible(visible: bool);
+
+//     setServerTime(timestamp);
+// }
+
+// export function init(config): Annotorious;
