@@ -1,1 +1,9 @@
 @import url('~@recogito/annotorious/dist/annotorious.min.css');
+
+.lm-Widget.annotorius-widget {
+  overflow: visible;
+}
+
+.annotorius-widget svg.a9s-annotationlayer {
+  overflow: visible;
+}

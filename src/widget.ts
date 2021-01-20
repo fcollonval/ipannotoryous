@@ -8,13 +8,18 @@ import {
 } from '@jupyter-widgets/base';
 import { init } from '@recogito/annotorious';
 
-// import './annotorious.min.css';
-// import '@recogito/annotorious/dist/annotations.min.css';
-
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Import the CSS
 import '../css/widget.css';
+
+// Parent container classes in need of style tuning
+//  The order is bottom to top must be respected
+const PARENTS_TO_STYLE = [
+  'jupyter-widgets',
+  'jp-OutputArea-child',
+  'jp-Cell-outputArea',
+];
 
 export class AnnotoriusModel extends DOMWidgetModel {
   defaults() {
@@ -30,7 +35,7 @@ export class AnnotoriusModel extends DOMWidgetModel {
       width: '',
       height: '',
       value: new DataView(new ArrayBuffer(0)),
-      author: {},
+      author: {}, // TODO
       drawingTool: 'rect',
     };
   }
@@ -47,8 +52,8 @@ export class AnnotoriusModel extends DOMWidgetModel {
   static model_name = 'AnnotoriusModel';
   static model_module = MODULE_NAME;
   static model_module_version = MODULE_VERSION;
-  static view_name = 'AnnotoriusView'; // Set to null if no view
-  static view_module = MODULE_NAME; // Set to null if no view
+  static view_name = 'AnnotoriusView';
+  static view_module = MODULE_NAME;
   static view_module_version = MODULE_VERSION;
 }
 
@@ -59,12 +64,13 @@ export class AnnotoriusView extends DOMWidgetView {
     this.el.append(this._img);
     this._annotator = init({
       image: this._img,
-      // headless: true,
       locale: 'auto',
+      // TODO add data- for all tags
       // formatter: () => {
       //   return { style: 'stroke: red' };
       // },
     });
+    // TODO sync annotations
     // this._annotator.addAnnotation({
     //   '@context': 'http://www.w3.org/ns/anno.jsonld',
     //   id: '#a88b22d0-6106-4872-9435-c78b5e89fede',
@@ -84,18 +90,28 @@ export class AnnotoriusView extends DOMWidgetView {
     //   },
     // });
 
-    this.valueChanged();
-    this.model.on('change:drawingTool', this.drawingToolChanged, this);
+    this.displayed.then(() => {
+      this._updateParentOverflowStyle('visible');
+    });
     this.model.on('change:value', this.valueChanged, this);
+    this.model.on('change:drawingTool', this.drawingToolChanged, this);
+
+    this.valueChanged();
+    this.drawingToolChanged();
   }
 
   remove(): void {
+    // Clear style customization
+    this._updateParentOverflowStyle();
+
     if (this._annotator) {
       this._annotator.destroy();
     }
+
     if (this._img.src) {
       URL.revokeObjectURL(this._img.src);
     }
+
     super.remove();
   }
 
@@ -138,6 +154,27 @@ export class AnnotoriusView extends DOMWidgetView {
     } else {
       this._img.removeAttribute('width');
     }
+  }
+
+  /**
+   * Parent container of the widget are blocking the display of the
+   * editor as it overflows.
+   *
+   * This is a bit of plumbing to change style on some parents to allow
+   * overflow on that specific output cell.
+   */
+  private _updateParentOverflowStyle(value = ''): void {
+    let parent: HTMLElement | null = this.el as HTMLElement;
+    PARENTS_TO_STYLE.forEach((className) => {
+      while (parent) {
+        parent = parent.parentElement;
+
+        if (parent?.classList.contains(className)) {
+          parent.style.overflow = value;
+          break;
+        }
+      }
+    });
   }
 
   private _annotator: any;
