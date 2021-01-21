@@ -124,25 +124,6 @@ export class AnnotoriusView extends DOMWidgetView {
       headless: this.model.get('headless'),
       formatter: AnnotoriusView._formatAnnotation,
     });
-    // TODO sync annotations
-    // this._annotator.addAnnotation({
-    //   '@context': 'http://www.w3.org/ns/anno.jsonld',
-    //   id: '#a88b22d0-6106-4872-9435-c78b5e89fede',
-    //   type: 'Annotation',
-    //   body: [
-    //     {
-    //       type: 'TextualBody',
-    //       value: "It's Hallstatt in Upper Austria",
-    //     },
-    //   ],
-    //   target: {
-    //     selector: {
-    //       type: 'FragmentSelector',
-    //       conformsTo: 'http://www.w3.org/TR/media-frags/',
-    //       value: 'xywh=pixel:5,5,25,25',
-    //     },
-    //   },
-    // });
 
     // Tune notebook elements to display editor properly
     this.displayed.then(() => {
