@@ -3,11 +3,12 @@
 
 import {
   DOMWidgetModel,
+  WidgetModel,
   DOMWidgetView,
   ISerializers,
+  unpack_models,
 } from '@jupyter-widgets/base';
 import { init } from '@recogito/annotorious';
-
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Import the CSS
@@ -20,6 +21,29 @@ const PARENTS_TO_STYLE = [
   'jp-OutputArea-child',
   'jp-Cell-outputArea',
 ];
+
+export class AuthorModel extends WidgetModel {
+  defaults() {
+    return {
+      ...super.defaults(),
+      _model_name: AuthorModel.model_name,
+      _model_module: AuthorModel.model_module,
+      _model_module_version: AuthorModel.model_module_version,
+      // _view_name: AuthorModel.view_name as any,
+      // _view_module: AuthorModel.view_module as any,
+      // _view_module_version: AuthorModel.view_module_version,
+      id: '',
+      displayName: '',
+    };
+  }
+
+  static model_name = 'AuthorModel';
+  static model_module = MODULE_NAME;
+  static model_module_version = MODULE_VERSION;
+  static view_name = null;
+  static view_module = null;
+  static view_module_version = MODULE_VERSION;
+}
 
 export class AnnotoriusModel extends DOMWidgetModel {
   defaults() {
@@ -35,8 +59,10 @@ export class AnnotoriusModel extends DOMWidgetModel {
       width: '',
       height: '',
       value: new DataView(new ArrayBuffer(0)),
-      author: {}, // TODO
+      author: null,
       drawingTool: 'rect',
+      headless: false,
+      readOnly: false,
     };
   }
 
@@ -47,6 +73,7 @@ export class AnnotoriusModel extends DOMWidgetModel {
         return new DataView(value.buffer.slice(0));
       },
     },
+    author: { deserialize: unpack_models as any },
   };
 
   static model_name = 'AnnotoriusModel';
@@ -65,6 +92,8 @@ export class AnnotoriusView extends DOMWidgetView {
     this._annotator = init({
       image: this._img,
       locale: 'auto',
+      readOnly: this.model.get('readOnly'),
+      headless: this.model.get('headless'),
       // TODO add data- for all tags
       // formatter: () => {
       //   return { style: 'stroke: red' };
@@ -94,9 +123,11 @@ export class AnnotoriusView extends DOMWidgetView {
       this._updateParentOverflowStyle('visible');
     });
     this.model.on('change:value', this.valueChanged, this);
+    this.model.on('change:author', this.authorChanged, this);
     this.model.on('change:drawingTool', this.drawingToolChanged, this);
 
     this.valueChanged();
+    this.authorChanged();
     this.drawingToolChanged();
   }
 
@@ -113,6 +144,20 @@ export class AnnotoriusView extends DOMWidgetView {
     }
 
     super.remove();
+  }
+
+  authorChanged(): void {
+    if (this._annotator) {
+      const author = this.model.get('author');
+      if (author) {
+        this._annotator.setAuthInfo({
+          id: author.get('id'),
+          displayName: author.get('displayName'),
+        });
+      } else {
+        this._annotator.clearAuthInfo();
+      }
+    }
   }
 
   drawingToolChanged(): void {

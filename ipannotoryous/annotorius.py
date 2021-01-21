@@ -8,10 +8,23 @@
 TODO: Add module docstring
 """
 
-from ipywidgets import DOMWidget
-from traitlets import Dict, Enum, Unicode, CUnicode
+from ipywidgets import DOMWidget, Widget, widget_serialization
+from traitlets import Bool, Enum, HasTraits, Instance, Unicode, CUnicode
 from ipywidgets.widgets.widget_media import _Media
 from ._frontend import module_name, module_version
+
+
+class Author(Widget):
+    """Annotation author"""
+
+    _model_name = Unicode("AuthorModel").tag(sync=True)
+    _model_module = Unicode(module_name).tag(sync=True)
+    _model_module_version = Unicode(module_version).tag(sync=True)
+
+    id = CUnicode(default_value="", help="Annotation author ID.").tag(sync=True)
+    displayName = CUnicode(
+        default_value="", help="Annotation author display name."
+    ).tag(sync=True)
 
 
 class Annotator(_Media):
@@ -34,9 +47,15 @@ class Annotator(_Media):
         "for styling the widget."
     ).tag(sync=True)
 
-    author = Dict(default_value={"id": None, "display_name": None}).tag(sync=True)
+    author = Instance(Author, allow_none=True).tag(sync=True, **widget_serialization)
     drawingTool = Enum(
         ["rect", "polygon"], default_value="rect", help="Drawing tool."
+    ).tag(sync=True)
+    headless = Bool(
+        default_value=False, help="Whether to disable the editor popup or not."
+    ).tag(sync=True)
+    readOnly = Bool(
+        default_value=False, help="Whether to display the annotations as read-only."
     ).tag(sync=True)
 
     @classmethod
