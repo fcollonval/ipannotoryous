@@ -8,7 +8,7 @@ import {
   ISerializers,
   unpack_models,
 } from '@jupyter-widgets/base';
-import { init } from '@recogito/annotorious';
+import { Annotorious, init } from '@recogito/annotorious';
 import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Import the CSS
@@ -29,9 +29,6 @@ export class AuthorModel extends WidgetModel {
       _model_name: AuthorModel.model_name,
       _model_module: AuthorModel.model_module,
       _model_module_version: AuthorModel.model_module_version,
-      // _view_name: AuthorModel.view_name as any,
-      // _view_module: AuthorModel.view_module as any,
-      // _view_module_version: AuthorModel.view_module_version,
       id: '',
       displayName: '',
     };
@@ -82,6 +79,37 @@ export class AnnotoriusModel extends DOMWidgetModel {
   static view_name = 'AnnotoriusView';
   static view_module = MODULE_NAME;
   static view_module_version = MODULE_VERSION;
+
+  initialize(attributes: any, options: any): void {
+    super.initialize(attributes, options);
+
+    this.on('msg:custom', this.onCustomMsg.bind(this));
+  }
+
+  protected onCustomMsg(content: any, buffers: any[]): void {
+    const action = content.action as string;
+    switch (action) {
+      case 'delete':
+        this._forEachView((view: AnnotoriusView) => {
+          view.deleteAnnotation(content.annotation);
+        });
+        break;
+      case 'update':
+        this._forEachView((view: AnnotoriusView) => {
+          view.updateAnnotation(content.annotation);
+        });
+        break;
+    }
+  }
+
+  private _forEachView(callback: (view: AnnotoriusView) => void) {
+    const views = this.views as { [k: string]: Promise<AnnotoriusView> };
+    for (const view_id in views) {
+      views[view_id].then((view: AnnotoriusView) => {
+        callback(view);
+      });
+    }
+  }
 }
 
 export class AnnotoriusView extends DOMWidgetView {
@@ -94,10 +122,7 @@ export class AnnotoriusView extends DOMWidgetView {
       locale: 'auto',
       readOnly: this.model.get('readOnly'),
       headless: this.model.get('headless'),
-      // TODO add data- for all tags
-      // formatter: () => {
-      //   return { style: 'stroke: red' };
-      // },
+      formatter: AnnotoriusView._formatAnnotation,
     });
     // TODO sync annotations
     // this._annotator.addAnnotation({
@@ -119,13 +144,21 @@ export class AnnotoriusView extends DOMWidgetView {
     //   },
     // });
 
+    // Tune notebook elements to display editor properly
     this.displayed.then(() => {
       this._updateParentOverflowStyle('visible');
     });
+    // Connect Python event
     this.model.on('change:value', this.valueChanged, this);
     this.model.on('change:author', this.authorChanged, this);
     this.model.on('change:drawingTool', this.drawingToolChanged, this);
 
+    // Connect JavaScript event
+    this._annotator.on('createAnnotation', this.handleCreate.bind(this));
+    this._annotator.on('updateAnnotation', this.handleUpdate.bind(this));
+    this._annotator.on('deleteAnnotation', this.handleDelete.bind(this));
+
+    // Propagate initial value
     this.valueChanged();
     this.authorChanged();
     this.drawingToolChanged();
@@ -146,7 +179,31 @@ export class AnnotoriusView extends DOMWidgetView {
     super.remove();
   }
 
-  authorChanged(): void {
+  updateAnnotation(annotation: any) {
+    if (this._annotator) {
+      this._annotator.addAnnotation(annotation);
+    }
+  }
+
+  deleteAnnotation(annotation: any) {
+    if (this._annotator) {
+      this._annotator.removeAnnotation(annotation);
+    }
+  }
+
+  protected handleCreate(annotation: any): void {
+    this.send({ event: 'onCreateAnnotation', args: { annotation } });
+  }
+
+  protected handleDelete(annotation: any): void {
+    this.send({ event: 'onDeleteAnnotation', args: { annotation } });
+  }
+
+  protected handleUpdate(annotation: any): void {
+    this.send({ event: 'onUpdateAnnotation', args: { annotation } });
+  }
+
+  protected authorChanged(): void {
     if (this._annotator) {
       const author = this.model.get('author');
       if (author) {
@@ -160,13 +217,13 @@ export class AnnotoriusView extends DOMWidgetView {
     }
   }
 
-  drawingToolChanged(): void {
+  protected drawingToolChanged(): void {
     if (this._annotator) {
       this._annotator.setDrawingTool(this.model.get('drawingTool'));
     }
   }
 
-  valueChanged(): void {
+  protected valueChanged(): void {
     let url;
     const format = this.model.get('format');
     const value = this.model.get('value');
@@ -201,6 +258,16 @@ export class AnnotoriusView extends DOMWidgetView {
     }
   }
 
+  private static _formatAnnotation(annotation: any) {
+    const tags: string[] = annotation.body
+      .filter((el: any) => el.purpose === 'tagging')
+      .map((el: any) => el.value);
+
+    if (tags.length > 0) {
+      return { 'data-tags': tags.join(',') };
+    }
+  }
+
   /**
    * Parent container of the widget are blocking the display of the
    * editor as it overflows.
@@ -222,6 +289,6 @@ export class AnnotoriusView extends DOMWidgetView {
     });
   }
 
-  private _annotator: any;
+  private _annotator: Annotorious;
   private _img: HTMLImageElement;
 }
