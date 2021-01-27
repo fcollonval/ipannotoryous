@@ -145,15 +145,18 @@ export class AnnotoriusModel extends DOMWidgetModel {
    */
   protected onCustomMsg(content: any, buffers: any[]): void {
     const action = content.action as string;
+    // For deletion, the annotation can be specified only by its id.
     const index = this._annotations.findIndex(
-      (annotation) => annotation.id === content.annotation?.id
+      (annotation) =>
+        annotation.id ===
+        (content.annotation?.id ? content.annotation.id : content.annotation)
     );
     switch (action) {
       case 'delete':
         if (index >= 0) {
-          this._annotations.splice(index, 1);
+          const removedAnnotations = this._annotations.splice(index, 1);
           this._forEachView((view: AnnotoriusView) => {
-            view.deleteAnnotation(content.annotation);
+            view.deleteAnnotation(removedAnnotations[0]);
           });
         }
         break;

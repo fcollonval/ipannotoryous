@@ -101,21 +101,41 @@ class Annotator(_Media):
 
     def update_annotation(self, annotation: dict) -> NoReturn:
         """Update an annotation."""
+        indexes = [a["id"] for a in self.annotations]
+        try:
+            index = indexes.index(annotation["id"])
+        except ValueError:
+            self.annotations.append(annotation)
+        else:
+            self.annotations[index] = annotation
         self.send({"action": "update", "annotation": annotation})
 
     def remove_annotation(self, annotation: Union[dict, str]) -> NoReturn:
         """Remove an annotation given the annotation description or id."""
+        if isinstance(annotation, str):
+            annotation = list(filter(lambda a: a["id"] == annotation, self.annotations))
+            if len(annotation) == 0:
+                raise ValueError(f"Annotation '{annotation}' not in list.")
+            else:
+                annotation = annotation[0]
+        self.annotations.remove(annotation)
         self.send({"action": "delete", "annotation": annotation})
 
-    def on_create_annotation(self, callback: Callable[[dict], NoReturn], remove: bool=False) -> NoReturn:
+    def on_create_annotation(
+        self, callback: Callable[[dict], NoReturn], remove: bool = False
+    ) -> NoReturn:
         """Add a callback on create annotation event."""
         self._create_annotation_callbacks.register_callback(callback, remove=remove)
 
-    def on_delete_annotation(self, callback: Callable[[dict], NoReturn], remove: bool=False) -> NoReturn:
+    def on_delete_annotation(
+        self, callback: Callable[[dict], NoReturn], remove: bool = False
+    ) -> NoReturn:
         """Add a callback on delete annotation event."""
         self._delete_annotation_callbacks.register_callback(callback, remove=remove)
 
-    def on_update_annotation(self, callback: Callable[[dict, dict], NoReturn], remove: bool=False) -> NoReturn:
+    def on_update_annotation(
+        self, callback: Callable[[dict, dict], NoReturn], remove: bool = False
+    ) -> NoReturn:
         """Add a callback on update annotation event.
         
         Args:
@@ -124,7 +144,9 @@ class Annotator(_Media):
         """
         self._update_annotation_callbacks.register_callback(callback, remove=remove)
 
-    def _handle_frontend_event(self, _: "Widget", content: dict, buffers: list) -> NoReturn:
+    def _handle_frontend_event(
+        self, _: "Widget", content: dict, buffers: list
+    ) -> NoReturn:
         """Handle custom frontend events"""
         event = content.get("event")
         args = content.get("args", {})
@@ -136,31 +158,14 @@ class Annotator(_Media):
             for annotation in self.annotations:
                 self.append_annotation(annotation)
         elif event == "onCreateAnnotation":
-            self.set_trait("annotations", self.annotations + [args["annotation"]])
-            self.update_annotation(
+            self.append_annotation(
                 args["annotation"]
             )  # Propagate annotation addition to all views
             self._create_annotation_callbacks(**args)
         elif event == "onDeleteAnnotation":
-            self.set_trait(
-                "annotations",
-                [
-                    anno
-                    for anno in self.annotations
-                    if anno["id"] != args["annotation"]["id"]
-                ],
-            )
             self.remove_annotation(args["annotation"])
             self._delete_annotation_callbacks(**args)
         elif event == "onUpdateAnnotation":
-            new_list = []
-            for anno in self.annotations:
-                if anno["id"] != args["annotation"]["id"]:
-                    new_list.append(anno)
-                else:
-                    new_list.append(args["annotation"])
-
-            self.set_trait("annotations", new_list)
             self.update_annotation(
                 args["annotation"]
             )  # Propagate annotation addition to all views
