@@ -1,4 +1,4 @@
-// Copyright (c) Frederic Collonval
+// Copyright (c) ARIADNEXT
 // Distributed under the terms of the Modified BSD License.
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -1,4 +1,4 @@
-// Copyright (c) Frederic Collonval
+// Copyright (c) ARIADNEXT
 // Distributed under the terms of the Modified BSD License.
 
 export * from './version';

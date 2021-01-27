@@ -1,4 +1,4 @@
-Copyright (c) 2020 Frederic Collonval
+Copyright (c) 2021 ARIADNEXT
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

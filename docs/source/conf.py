@@ -55,8 +55,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'ipannotoryous'
-copyright = '2020, Frederic Collonval'
-author = 'Frederic Collonval'
+copyright = '2021, ARIADNEXT'
+author = 'ARIADNEXT'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -144,7 +144,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'ipannotoryous.tex', 'ipannotoryous Documentation',
-     'Frederic Collonval', 'manual'),
+     'ARIADNEXT', 'manual'),
 ]
 
 

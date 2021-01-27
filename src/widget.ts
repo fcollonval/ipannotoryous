@@ -1,4 +1,4 @@
-// Copyright (c) Frederic Collonval
+// Copyright (c) ARIADNEXT
 // Distributed under the terms of the Modified BSD License.
 
 import {
@@ -22,6 +22,9 @@ const PARENTS_TO_STYLE = [
   'jp-Cell-outputArea',
 ];
 
+/**
+ * Widget annotation's author model
+ */
 export class AuthorModel extends WidgetModel {
   defaults() {
     return {
@@ -29,7 +32,13 @@ export class AuthorModel extends WidgetModel {
       _model_name: AuthorModel.model_name,
       _model_module: AuthorModel.model_module,
       _model_module_version: AuthorModel.model_module_version,
+      /**
+       * Author unique identifier - should be an URI
+       */
       id: '',
+      /**
+       * Displayed name in the widget
+       */
       displayName: '',
     };
   }
@@ -42,6 +51,9 @@ export class AuthorModel extends WidgetModel {
   static view_module_version = MODULE_VERSION;
 }
 
+/**
+ * Widget Annotorius model
+ */
 export class AnnotoriusModel extends DOMWidgetModel {
   defaults() {
     return {
@@ -52,13 +64,37 @@ export class AnnotoriusModel extends DOMWidgetModel {
       _view_name: AnnotoriusModel.view_name,
       _view_module: AnnotoriusModel.view_module,
       _view_module_version: AnnotoriusModel.view_module_version,
+      /**
+       * Image format
+       */
       format: 'png',
+      /**
+       * Image width
+       */
       width: '',
+      /**
+       * Image height
+       */
       height: '',
+      /**
+       * Image as bytes array
+       */
       value: new DataView(new ArrayBuffer(0)),
+      /**
+       * Annotation author information
+       */
       author: null,
+      /**
+       * Drawing tool
+       */
       drawingTool: 'rect',
+      /**
+       * Whether annotation tool is headless
+       */
       headless: false,
+      /**
+       * Whether annotation are readonly in the frontend
+       */
       readOnly: false,
     };
   }
@@ -80,21 +116,53 @@ export class AnnotoriusModel extends DOMWidgetModel {
   static view_module = MODULE_NAME;
   static view_module_version = MODULE_VERSION;
 
+  /**
+   * Annotations list.
+   */
+  get annotations(): any[] {
+    return this._annotations;
+  }
+
+  /**
+   * Model initialization
+   *
+   * @param attributes
+   * @param options
+   */
   initialize(attributes: any, options: any): void {
     super.initialize(attributes, options);
 
     this.on('msg:custom', this.onCustomMsg.bind(this));
+
+    this.send({ event: 'model_ready' }, {});
   }
 
+  /**
+   * Callback on custom message.
+   *
+   * @param content Message content
+   * @param buffers Message buffers
+   */
   protected onCustomMsg(content: any, buffers: any[]): void {
     const action = content.action as string;
+    const index = this._annotations.findIndex(
+      (annotation) => annotation.id === content.annotation?.id
+    );
     switch (action) {
       case 'delete':
-        this._forEachView((view: AnnotoriusView) => {
-          view.deleteAnnotation(content.annotation);
-        });
+        if (index >= 0) {
+          this._annotations.splice(index, 1);
+          this._forEachView((view: AnnotoriusView) => {
+            view.deleteAnnotation(content.annotation);
+          });
+        }
         break;
       case 'update':
+        if (index >= 0) {
+          this._annotations[index] = { ...content.annotation };
+        } else {
+          this._annotations.push(content.annotation);
+        }
         this._forEachView((view: AnnotoriusView) => {
           view.updateAnnotation(content.annotation);
         });
@@ -110,11 +178,16 @@ export class AnnotoriusModel extends DOMWidgetModel {
       });
     }
   }
+
+  private _annotations: any[] = [];
 }
 
+/**
+ * Widget Annotorius view
+ */
 export class AnnotoriusView extends DOMWidgetView {
   render() {
-    this.el.classList.add('annotorius-widget');
+    this.pWidget.addClass('annotorius-widget');
     this._img = document.createElement<'img'>('img');
     this.el.append(this._img);
     this._annotator = init({
@@ -130,7 +203,11 @@ export class AnnotoriusView extends DOMWidgetView {
       this._updateParentOverflowStyle('visible');
     });
     // Connect Python event
+    // FIXME is it a good idea to let user change dynamically the image and/or its size
     this.model.on('change:value', this.valueChanged, this);
+    this.model.on('change:format', this.valueChanged, this);
+    this.model.on('change:height', this.valueChanged, this);
+    this.model.on('change:width', this.valueChanged, this);
     this.model.on('change:author', this.authorChanged, this);
     this.model.on('change:drawingTool', this.drawingToolChanged, this);
 
@@ -143,8 +220,15 @@ export class AnnotoriusView extends DOMWidgetView {
     this.valueChanged();
     this.authorChanged();
     this.drawingToolChanged();
+
+    (this.model as AnnotoriusModel).annotations.forEach((annotation) => {
+      this.updateAnnotation(annotation);
+    });
   }
 
+  /**
+   * Remove the view
+   */
   remove(): void {
     // Clear style customization
     this._updateParentOverflowStyle();
@@ -160,13 +244,23 @@ export class AnnotoriusView extends DOMWidgetView {
     super.remove();
   }
 
-  updateAnnotation(annotation: any) {
+  /**
+   * Update an annotation
+   *
+   * @param annotation Annotation object to be updated
+   */
+  updateAnnotation(annotation: any): void {
     if (this._annotator) {
       this._annotator.addAnnotation(annotation);
     }
   }
 
-  deleteAnnotation(annotation: any) {
+  /**
+   * Delete an annotation
+   *
+   * @param annotation Annotation object and id to be deleted
+   */
+  deleteAnnotation(annotation: any): void {
     if (this._annotator) {
       this._annotator.removeAnnotation(annotation);
     }
@@ -180,8 +274,8 @@ export class AnnotoriusView extends DOMWidgetView {
     this.send({ event: 'onDeleteAnnotation', args: { annotation } });
   }
 
-  protected handleUpdate(annotation: any): void {
-    this.send({ event: 'onUpdateAnnotation', args: { annotation } });
+  protected handleUpdate(annotation: any, previous: any): void {
+    this.send({ event: 'onUpdateAnnotation', args: { annotation, previous } });
   }
 
   protected authorChanged(): void {
@@ -239,6 +333,12 @@ export class AnnotoriusView extends DOMWidgetView {
     }
   }
 
+  /**
+   * Add data-tags with the annotation tags to the annotation DOM node
+   *
+   * @param annotation Annotation to be formatted
+   * @returns Annotation format object
+   */
   private static _formatAnnotation(annotation: any) {
     const tags: string[] = annotation.body
       .filter((el: any) => el.purpose === 'tagging')

@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# Copyright (c) Frederic Collonval.
+# Copyright (c) ARIADNEXT.
 # Distributed under the terms of the Modified BSD License.
 
-"""
-TODO: Add module docstring
-"""
+"""Annotator widget and associated models."""
+
+from __future__ import annotations
 
 from ipywidgets import CallbackDispatcher, DOMWidget, Widget, widget_serialization
-from traitlets import Bool, Dict, Enum, HasTraits, Instance, List, Unicode, CUnicode
 from ipywidgets.widgets.widget_media import _Media
+from traitlets import Bool, CUnicode, Dict, Enum, HasTraits, Instance, List, Unicode
+from typing import Callable, NoReturn, Union
+
 from ._frontend import module_name, module_version
 
 
@@ -28,7 +30,14 @@ class Author(Widget):
 
 
 class Annotator(_Media):
-    """TODO: Add docstring here
+    """Annotation tool.
+    
+    The image is stored as `value` attribute. It accepts a byte string.
+    The byte string is the raw image data that you want the browser to annotate.
+    You can explicitly define the format of the byte string using the `format` trait
+    (which defaults to "png").
+    If you pass `"url"` to the `"format"` trait, `value` will be interpreted
+    as a URL as bytes encoded in UTF-8.
     """
 
     _model_name = Unicode("AnnotoriusModel").tag(sync=True)
@@ -40,17 +49,27 @@ class Annotator(_Media):
 
     format = Unicode("png", help="The format of the image.").tag(sync=True)
     width = CUnicode(
-        help="Width of the image in pixels. Use layout.width " "for styling the widget."
+        help="Width of the image in pixels. Use layout.width for styling the widget."
     ).tag(sync=True)
     height = CUnicode(
         help="Height of the image in pixels. Use layout.height "
         "for styling the widget."
     ).tag(sync=True)
 
-    annotations = List(Dict, default_value=[], read_only=True)
+    annotations = List(
+        Dict,
+        help="""List of annotations on the image.
+    
+    This list must not be changed directly. Use `append_annotation`, `update_annotation`
+    and `remove_annotation`.""",
+        default_value=[],
+        read_only=True,
+    )
     author = Instance(Author, allow_none=True).tag(sync=True, **widget_serialization)
     drawingTool = Enum(
-        ["rect", "polygon"], default_value="rect", help="Drawing tool."
+        ["rect", "polygon"],
+        default_value="rect",
+        help="Drawing tool. Available values are `rect` and `polygon`.",
     ).tag(sync=True)
     headless = Bool(
         default_value=False, help="Whether to disable the editor popup or not."
@@ -64,36 +83,48 @@ class Annotator(_Media):
     _update_annotation_callbacks = Instance(CallbackDispatcher, args=())
 
     @classmethod
-    def from_file(cls, filename, **kwargs):
+    def from_file(cls, filename: str, **kwargs) -> "Annotator":
+        """Create a annotation widget from a image filename."""
         return cls._from_file("image", filename, **kwargs)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> NoReturn:
         super().__init__(*args, **kwargs)
 
         self.on_msg(self._handle_frontend_event)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._get_repr(Annotator)
 
-    def add_annotation(self, annotation):
+    def append_annotation(self, annotation: dict) -> NoReturn:
+        """Add an annotation."""
         self.update_annotation(annotation)
 
-    def update_annotation(self, annotation):
+    def update_annotation(self, annotation: dict) -> NoReturn:
+        """Update an annotation."""
         self.send({"action": "update", "annotation": annotation})
 
-    def remove_annotation(self, annotation):
+    def remove_annotation(self, annotation: Union[dict, str]) -> NoReturn:
+        """Remove an annotation given the annotation description or id."""
         self.send({"action": "delete", "annotation": annotation})
 
-    def on_create_annotation(self, callback, remove=False):
+    def on_create_annotation(self, callback: Callable[[dict], NoReturn], remove: bool=False) -> NoReturn:
+        """Add a callback on create annotation event."""
         self._create_annotation_callbacks.register_callback(callback, remove=remove)
 
-    def on_delete_annotation(self, callback, remove=False):
+    def on_delete_annotation(self, callback: Callable[[dict], NoReturn], remove: bool=False) -> NoReturn:
+        """Add a callback on delete annotation event."""
         self._delete_annotation_callbacks.register_callback(callback, remove=remove)
 
-    def on_update_annotation(self, callback, remove=False):
+    def on_update_annotation(self, callback: Callable[[dict, dict], NoReturn], remove: bool=False) -> NoReturn:
+        """Add a callback on update annotation event.
+        
+        Args:
+            callback: Callback function will received the new and the previous annotations (in that order)
+            remove: Whether to remove or add the callback?
+        """
         self._update_annotation_callbacks.register_callback(callback, remove=remove)
 
-    def _handle_frontend_event(self, _, content, buffers):
+    def _handle_frontend_event(self, _: "Widget", content: dict, buffers: list) -> NoReturn:
         """Handle custom frontend events"""
         event = content.get("event")
         args = content.get("args", {})
@@ -101,8 +132,14 @@ class Annotator(_Media):
         if event is None:
             return
 
-        if event == "onCreateAnnotation":
+        if event == "model_ready":
+            for annotation in self.annotations:
+                self.append_annotation(annotation)
+        elif event == "onCreateAnnotation":
             self.set_trait("annotations", self.annotations + [args["annotation"]])
+            self.update_annotation(
+                args["annotation"]
+            )  # Propagate annotation addition to all views
             self._create_annotation_callbacks(**args)
         elif event == "onDeleteAnnotation":
             self.set_trait(
@@ -113,6 +150,7 @@ class Annotator(_Media):
                     if anno["id"] != args["annotation"]["id"]
                 ],
             )
+            self.remove_annotation(args["annotation"])
             self._delete_annotation_callbacks(**args)
         elif event == "onUpdateAnnotation":
             new_list = []
@@ -123,4 +161,7 @@ class Annotator(_Media):
                     new_list.append(args["annotation"])
 
             self.set_trait("annotations", new_list)
+            self.update_annotation(
+                args["annotation"]
+            )  # Propagate annotation addition to all views
             self._update_annotation_callbacks(**args)
