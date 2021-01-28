@@ -84,6 +84,7 @@ class Annotator(_Media):
 
     _create_annotation_callbacks = Instance(CallbackDispatcher, args=())
     _delete_annotation_callbacks = Instance(CallbackDispatcher, args=())
+    _select_annotation_callbacks = Instance(CallbackDispatcher, args=())
     _update_annotation_callbacks = Instance(CallbackDispatcher, args=())
 
     @classmethod
@@ -139,6 +140,12 @@ class Annotator(_Media):
         """Add a callback on delete annotation event."""
         self._delete_annotation_callbacks.register_callback(callback, remove=remove)
 
+    def on_select_annotation(
+        self, callback: Callable[[dict], NoReturn], remove: bool = False
+    ) -> NoReturn:
+        """Add a callback on select annotation event."""
+        self._select_annotation_callbacks.register_callback(callback, remove=remove)
+
     def on_update_annotation(
         self, callback: Callable[[dict, dict], NoReturn], remove: bool = False
     ) -> NoReturn:
@@ -160,7 +167,7 @@ class Annotator(_Media):
         if event is None:
             return
 
-        if event == "model_ready":
+        if event == "onModelIsReady":
             for annotation in self.annotations:
                 self.append_annotation(annotation)
         elif event == "onCreateAnnotation":
@@ -171,6 +178,8 @@ class Annotator(_Media):
         elif event == "onDeleteAnnotation":
             self.remove_annotation(args["annotation"])
             self._delete_annotation_callbacks(**args)
+        elif event == "onSelectAnnotation":
+            self._select_annotation_callbacks(**args)
         elif event == "onUpdateAnnotation":
             self.update_annotation(
                 args["annotation"]

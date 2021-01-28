@@ -134,7 +134,7 @@ export class AnnotoriusModel extends DOMWidgetModel {
 
     this.on('msg:custom', this.onCustomMsg.bind(this));
 
-    this.send({ event: 'model_ready' }, {});
+    this.send({ event: 'onModelIsReady' }, {});
   }
 
   /**
@@ -189,7 +189,7 @@ export class AnnotoriusModel extends DOMWidgetModel {
  * Widget Annotorius view
  */
 export class AnnotoriusView extends DOMWidgetView {
-  render() {
+  render(): void {
     this.pWidget.addClass('annotorius-widget');
     this._img = document.createElement<'img'>('img');
     this.el.append(this._img);
@@ -216,8 +216,9 @@ export class AnnotoriusView extends DOMWidgetView {
 
     // Connect JavaScript event
     this._annotator.on('createAnnotation', this.handleCreate.bind(this));
-    this._annotator.on('updateAnnotation', this.handleUpdate.bind(this));
     this._annotator.on('deleteAnnotation', this.handleDelete.bind(this));
+    this._annotator.on('selectAnnotation', this.handleSelect.bind(this));
+    this._annotator.on('updateAnnotation', this.handleUpdate.bind(this));
 
     // Propagate initial value
     this.valueChanged();
@@ -275,6 +276,10 @@ export class AnnotoriusView extends DOMWidgetView {
 
   protected handleDelete(annotation: any): void {
     this.send({ event: 'onDeleteAnnotation', args: { annotation } });
+  }
+
+  protected handleSelect(annotation: any): void {
+    this.send({ event: 'onSelectAnnotation', args: { annotation } });
   }
 
   protected handleUpdate(annotation: any, previous: any): void {
