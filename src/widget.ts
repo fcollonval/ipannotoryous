@@ -17,7 +17,7 @@ import { MODULE_NAME, MODULE_VERSION } from './version';
 // Parent container classes in need of style tuning
 //  The order is bottom to top must be respected
 const PARENTS_TO_STYLE = [
-  'jupyter-widgets',
+  'jp-OutputArea-output',
   'jp-OutputArea-child',
   'jp-Cell-outputArea',
 ];
