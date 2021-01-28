@@ -61,11 +61,12 @@ class Annotator(_Media):
 
     format = Unicode("png", help="The format of the image.").tag(sync=True)
     width = CUnicode(
-        help="Width of the image in pixels. Use layout.width for styling the widget."
+        help="""Width of the image in pixels.
+    Use layout.width for styling the widget."""
     ).tag(sync=True)
     height = CUnicode(
-        help="Height of the image in pixels. Use layout.height "
-        "for styling the widget."
+        help="""Height of the image in pixels. 
+    Use layout.height for styling the widget."""
     ).tag(sync=True)
 
     annotations = List(
@@ -93,6 +94,19 @@ class Annotator(_Media):
     ).tag(sync=True)
     readOnly = Bool(
         default_value=False, help="Whether to display the annotations as read-only."
+    ).tag(sync=True)
+    template = List(
+        trait=Dict,
+        default_value=[],
+        help="""Annotation content to add on new annotation shape.
+    
+    The structure is a list of dictionaries containing keys: type, value and purpose.
+
+    Example: [
+        {"type": "TextualBody", "value": "My comment", "purpose": "commenting"},
+        {"type": "TextualBody", "value": "my-tag", "purpose": "tagging"}
+    ]
+    """,
     ).tag(sync=True)
 
     _create_annotation_callbacks = Instance(CallbackDispatcher, args=())

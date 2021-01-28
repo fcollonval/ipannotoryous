@@ -71,7 +71,7 @@ def test_annotator_create_on_ready(mock_comm, annotation):
     mock_comm.handle_msg(
         {
             "content": {
-                "data": {"method": "custom", "content": {"event": "model_ready"}}
+                "data": {"method": "custom", "content": {"event": "onModelIsReady"}}
             },
             "buffers": None,
         }

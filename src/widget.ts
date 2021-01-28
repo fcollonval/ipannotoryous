@@ -100,6 +100,10 @@ export class AnnotoriusModel extends DOMWidgetModel {
        * Whether annotation are readonly in the frontend
        */
       readOnly: false,
+      /**
+       * Annotation content template
+       */
+      template: [],
     };
   }
 
@@ -136,7 +140,7 @@ export class AnnotoriusModel extends DOMWidgetModel {
   initialize(attributes: any, options: any): void {
     super.initialize(attributes, options);
 
-    this.on('msg:custom', this.onCustomMsg.bind(this));
+    this.on('msg:custom', this.onCustomMsg, this);
 
     this.send({ event: 'onModelIsReady' }, {});
   }
@@ -215,18 +219,27 @@ export class AnnotoriusView extends DOMWidgetView {
     });
     // Connect Python event
     // FIXME is it a good idea to let user change dynamically the image and/or its size
-    this.model.on('change:value', this.valueChanged, this);
-    this.model.on('change:format', this.valueChanged, this);
-    this.model.on('change:height', this.valueChanged, this);
-    this.model.on('change:width', this.valueChanged, this);
-    this.model.on('change:author', this.authorChanged, this);
-    this.model.on('change:drawingTool', this.drawingToolChanged, this);
+    this.model.on(
+      {
+        'change:value': this.valueChanged,
+        'change:format': this.valueChanged,
+        'change:height': this.valueChanged,
+        'change:width': this.valueChanged,
+        'change:author': this.authorChanged,
+        'change:drawingTool': this.drawingToolChanged,
+      },
+      this
+    );
 
     // Connect JavaScript event
     this._annotator.on('createAnnotation', this.handleCreate.bind(this));
     this._annotator.on('deleteAnnotation', this.handleDelete.bind(this));
     this._annotator.on('selectAnnotation', this.handleSelect.bind(this));
     this._annotator.on('updateAnnotation', this.handleUpdate.bind(this));
+    this._annotator.on(
+      'createSelection',
+      this.handleCreateSelection.bind(this)
+    );
 
     // Propagate initial value
     this.valueChanged();
@@ -246,8 +259,14 @@ export class AnnotoriusView extends DOMWidgetView {
     this._updateParentOverflowStyle();
 
     if (this._annotator) {
+      this._annotator.off('createAnnotation', this.handleCreate.bind(this));
+      this._annotator.off('deleteAnnotation', this.handleDelete.bind(this));
+      this._annotator.off('selectAnnotation', this.handleSelect.bind(this));
+      this._annotator.off('updateAnnotation', this.handleUpdate.bind(this));
       this._annotator.destroy();
     }
+
+    this.model.off(undefined, undefined, this);
 
     if (this._img.src) {
       URL.revokeObjectURL(this._img.src);
@@ -280,6 +299,14 @@ export class AnnotoriusView extends DOMWidgetView {
 
   protected handleCreate(annotation: any): void {
     this.send({ event: 'onCreateAnnotation', args: { annotation } });
+  }
+
+  protected handleCreateSelection(selection: any): void {
+    const template = this.model.get('template');
+    if (this._annotator && template.length > 0) {
+      selection.body = template;
+      this._annotator.updateSelected(selection, true);
+    }
   }
 
   protected handleDelete(annotation: any): void {
