@@ -11,11 +11,19 @@ from __future__ import annotations
 from typing import Callable, NoReturn, Union
 from uuid import uuid4
 
-from ipywidgets import (CallbackDispatcher, DOMWidget, Widget,
-                        widget_serialization)
+from ipywidgets import CallbackDispatcher, DOMWidget, Widget, widget_serialization
 from ipywidgets.widgets.widget_media import _Media
-from traitlets import (Bool, CUnicode, Dict, Enum, HasTraits, Instance, List,
-                       Unicode)
+from traitlets import (
+    Bool,
+    CUnicode,
+    Dict,
+    Enum,
+    HasTraits,
+    Instance,
+    List,
+    Set,
+    Unicode,
+)
 
 from ._frontend import module_name, module_version
 
@@ -70,6 +78,11 @@ class Annotator(_Media):
         read_only=True,
     )
     author = Instance(Author, allow_none=True).tag(sync=True, **widget_serialization)
+    default_tags = Set(
+        Unicode,
+        default_value=set(),
+        help="Set of default tags to propose for annotations.",
+    ).tag(sync=True)
     drawingTool = Enum(
         ["rect", "polygon"],
         default_value="rect",

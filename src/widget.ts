@@ -85,6 +85,10 @@ export class AnnotoriusModel extends DOMWidgetModel {
        */
       author: null,
       /**
+       * Default tags
+       */
+      default_tags: [],
+      /**
        * Drawing tool
        */
       drawingTool: 'rect',
@@ -199,6 +203,10 @@ export class AnnotoriusView extends DOMWidgetView {
       readOnly: this.model.get('readOnly'),
       headless: this.model.get('headless'),
       formatter: AnnotoriusView._formatAnnotation,
+      widgets: [
+        'COMMENT',
+        { widget: 'TAG', vocabulary: this.model.get('default_tags') },
+      ],
     });
 
     // Tune notebook elements to display editor properly
@@ -365,6 +373,7 @@ export class AnnotoriusView extends DOMWidgetView {
    * overflow on that specific output cell.
    */
   private _updateParentOverflowStyle(value = ''): void {
+    // FIXME this does not work when the widget is encapsulated in Boxes widgets
     let parent: HTMLElement | null = this.el as HTMLElement;
     PARENTS_TO_STYLE.forEach((className) => {
       while (parent) {
