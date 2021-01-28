@@ -8,7 +8,8 @@
 
 from __future__ import annotations
 
-from typing import Callable, NoReturn, Union
+import asyncio
+from typing import Callable, Dict as TpDict, NoReturn, Union
 from uuid import uuid4
 
 from ipywidgets import CallbackDispatcher, DOMWidget, Widget, widget_serialization
@@ -121,6 +122,7 @@ class Annotator(_Media):
 
     def __init__(self, *args, **kwargs) -> NoReturn:
         super().__init__(*args, **kwargs)
+        self.__image_snippets: TpDict[str, asyncio.Future] = {}
 
         self.on_msg(self._handle_frontend_event)
 
@@ -132,6 +134,22 @@ class Annotator(_Media):
         if "id" not in annotation:
             annotation["id"] = f"#{uuid4()!s}"
         self.update_annotation(annotation)
+
+    def get_annotation_image(self, annotation: Union[dict, str, None] = None) -> asyncio.Future:
+        """Extract the annotation image snippet.
+        
+        Args:
+            annotation: The annotation to extract; default is to extract the currently 
+            selected one.
+        
+        Returns:
+            A Future resolving in a byte image when the annotation snippet is available.
+        """
+        uid = str(uuid4())
+        loop = asyncio.get_running_loop()
+        self.__image_snippets[uid] = future = loop.create_future()
+        self.send({"action": "image_snippet", "annotation": annotation, "uid": uid})
+        return future
 
     def update_annotation(self, annotation: dict) -> NoReturn:
         """Update an annotation."""
@@ -212,3 +230,13 @@ class Annotator(_Media):
                 args["annotation"]
             )  # Propagate annotation addition to all views
             self._update_annotation_callbacks(**args)
+        elif event == "imageSnippet":
+            uid = content["uid"]
+            future = self.__image_snippets.pop(uid)
+            if future.cancelled():
+                return
+            if buffers:
+                future.set_result(bytes(buffers[0]))
+            else:
+                future.set_result(bytes())
+

@@ -3,16 +3,16 @@
 
 import {
   DOMWidgetModel,
-  WidgetModel,
   DOMWidgetView,
   ISerializers,
   unpack_models,
+  WidgetModel,
 } from '@jupyter-widgets/base';
-import { Annotorious, init } from '@recogito/annotorious';
-import { MODULE_NAME, MODULE_VERSION } from './version';
-
+import { Annotorious, init, ISnippet } from '@recogito/annotorious';
 // Import the CSS
 import '../css/widget.css';
+import { toBytes } from './utils';
+import { MODULE_NAME, MODULE_VERSION } from './version';
 
 // Parent container classes in need of style tuning
 //  The order is bottom to top must be respected
@@ -168,6 +168,45 @@ export class AnnotoriusModel extends DOMWidgetModel {
           });
         }
         break;
+      case 'image_snippet':
+        ((views) => {
+          const viewIDs = Object.keys(views);
+          if (viewIDs.length > 0) {
+            // Extract image snippet from the first view
+            (views[viewIDs[0]] as Promise<AnnotoriusView>)
+              .then((view: AnnotoriusView) => {
+                if (index >= 0) {
+                  // Check the current selected annotation
+                  const currentAnnotation = view.selectedAnnotation?.id;
+                  if (this._annotations[index] !== currentAnnotation) {
+                    view.selectAnnotation(this._annotations[index]);
+                  }
+                }
+                // Extract image snippet
+                const snippet = view.selectedImageSnippet;
+                if (snippet) {
+                  return toBytes(snippet.snippet);
+                } else {
+                  return Promise.resolve(null);
+                }
+              })
+              .then((dataView) => {
+                // Send image snippet through buffer
+                this.send(
+                  {
+                    event: 'imageSnippet',
+                    uid: content.uid,
+                  },
+                  {},
+                  dataView ? [dataView.buffer] : undefined
+                );
+              })
+              .catch((reason) => {
+                console.error('Fail to get selected image snippet.', reason);
+              });
+          }
+        })(this.views);
+        break;
       case 'update':
         if (index >= 0) {
           this._annotations[index] = { ...content.annotation };
@@ -197,6 +236,20 @@ export class AnnotoriusModel extends DOMWidgetModel {
  * Widget Annotorius view
  */
 export class AnnotoriusView extends DOMWidgetView {
+  /**
+   * Currently selected annotation
+   */
+  get selectedAnnotation(): any {
+    return this._annotator?.getSelected();
+  }
+
+  /**
+   * Image snippet from the currently selected annotation
+   */
+  get selectedImageSnippet(): ISnippet | undefined {
+    return this._annotator?.getSelectedImageSnippet();
+  }
+
   render(): void {
     this.pWidget.addClass('annotorius-widget');
     this._img = document.createElement<'img'>('img');
@@ -263,6 +316,10 @@ export class AnnotoriusView extends DOMWidgetView {
       this._annotator.off('deleteAnnotation', this.handleDelete.bind(this));
       this._annotator.off('selectAnnotation', this.handleSelect.bind(this));
       this._annotator.off('updateAnnotation', this.handleUpdate.bind(this));
+      this._annotator.off(
+        'createSelection',
+        this.handleCreateSelection.bind(this)
+      );
       this._annotator.destroy();
     }
 
@@ -276,14 +333,21 @@ export class AnnotoriusView extends DOMWidgetView {
   }
 
   /**
+   * Select an annotation
+   *
+   * @param annotation Annotation object to be selected
+   */
+  selectAnnotation(annotation: any): void {
+    this._annotator?.selectAnnotation(annotation);
+  }
+
+  /**
    * Update an annotation
    *
    * @param annotation Annotation object to be updated
    */
   updateAnnotation(annotation: any): void {
-    if (this._annotator) {
-      this._annotator.addAnnotation(annotation);
-    }
+    this._annotator.addAnnotation(annotation);
   }
 
   /**
@@ -292,9 +356,7 @@ export class AnnotoriusView extends DOMWidgetView {
    * @param annotation Annotation object and id to be deleted
    */
   deleteAnnotation(annotation: any): void {
-    if (this._annotator) {
-      this._annotator.removeAnnotation(annotation);
-    }
+    this._annotator.removeAnnotation(annotation);
   }
 
   protected handleCreate(annotation: any): void {
@@ -303,9 +365,9 @@ export class AnnotoriusView extends DOMWidgetView {
 
   protected handleCreateSelection(selection: any): void {
     const template = this.model.get('template');
-    if (this._annotator && template.length > 0) {
+    if (template.length > 0) {
       selection.body = template;
-      this._annotator.updateSelected(selection, true);
+      this._annotator?.updateSelected(selection, true);
     }
   }
 
@@ -322,23 +384,19 @@ export class AnnotoriusView extends DOMWidgetView {
   }
 
   protected authorChanged(): void {
-    if (this._annotator) {
-      const author = this.model.get('author');
-      if (author) {
-        this._annotator.setAuthInfo({
-          id: author.get('id'),
-          displayName: author.get('displayName'),
-        });
-      } else {
-        this._annotator.clearAuthInfo();
-      }
+    const author = this.model.get('author');
+    if (author) {
+      this._annotator?.setAuthInfo({
+        id: author.get('id'),
+        displayName: author.get('displayName'),
+      });
+    } else {
+      this._annotator?.clearAuthInfo();
     }
   }
 
   protected drawingToolChanged(): void {
-    if (this._annotator) {
-      this._annotator.setDrawingTool(this.model.get('drawingTool'));
-    }
+    this._annotator?.setDrawingTool(this.model.get('drawingTool'));
   }
 
   protected valueChanged(): void {

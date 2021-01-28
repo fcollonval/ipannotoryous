@@ -1,37 +1,49 @@
 /// <reference path="../recogito__recogito-client-core/index.d.ts"/>
 
 declare module '@recogito/annotorious' {
+  export type AnnotationEvent =
+    | 'createAnnotation'
+    | 'deleteAnnotation'
+    | 'selectAnnotation'
+    | 'updateAnnotation'
+    | 'cancelSelection'
+    | 'createSelection'
+    | 'changeSelectionTarget'
+    | 'mouseEnterAnnotation'
+    | 'mouseLeaveAnnotation';
 
-  export type AnnotationEvent = 'createAnnotation' | 'deleteAnnotation' | 'selectAnnotation' | 'updateAnnotation' | 'cancelSelection' | 'createSelection' | 'changeSelectionTarget' | 'mouseEnterAnnotation' | 'mouseLeaveAnnotation';
-
-  export interface IAuthor{
+  export interface IAuthor {
     /**
      * Should be a URI of the user ID
      */
-    id: string,
+    id: string;
     /**
      * User name to display in the UI; fallback to id
      */
-    displayName?: string
+    displayName?: string;
   }
 
-  export interface IFormat{
-    className?: string,
-    style?: string,
-    [data: string]: string,
+  export interface IFormat {
+    className?: string;
+    style?: string;
+    [data: string]: string;
   }
 
   export interface IAnnotoriousConfig {
-    image: HTMLImageElement | string,
-    locale: string,
-    readOnly?: boolean,
-    headless?: boolean,
-    formatter?: (annotation: IAnnotation) => string | IFormat | void,
-    widgets?: any[]
+    image: HTMLImageElement | string;
+    locale: string;
+    readOnly?: boolean;
+    headless?: boolean;
+    formatter?: (annotation: IAnnotation) => string | IFormat | void;
+    widgets?: any[];
+  }
+
+  export interface ISnippet {
+    snippet: HTMLCanvasElement;
+    transform: (xy) => number[];
   }
 
   export class Annotorious {
-
     constructor(config: IAnnotoriousConfig);
 
     addAnnotation(annotation: IAnnotation, readOnly?: boolean): void;
@@ -48,7 +60,7 @@ declare module '@recogito/annotorious' {
 
     getSelected(): IAnnotation;
 
-    getSelectedImageSnippet(): any;
+    getSelectedImageSnippet(): ISnippet | undefined;
 
     loadAnnotations(url: string): IAnnotation[];
 
