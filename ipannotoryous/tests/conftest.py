@@ -9,13 +9,20 @@ import pytest
 from ipykernel.comm import Comm
 from ipywidgets import Widget
 
+
+class FakeKernel:
+
+    def __init__(self):
+        self.shell = None
+
+
 class MockComm(Comm):
     """A mock Comm object.
 
     Can be used to inspect calls to Comm's open/send/close methods.
     """
     comm_id = 'a-b-c-d'
-    kernel = 'Truthy'
+    kernel = FakeKernel()
 
     def __init__(self, *args, **kwargs):
         self.log_open = []

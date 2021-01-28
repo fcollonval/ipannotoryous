@@ -8,10 +8,14 @@
 
 from __future__ import annotations
 
-from ipywidgets import CallbackDispatcher, DOMWidget, Widget, widget_serialization
-from ipywidgets.widgets.widget_media import _Media
-from traitlets import Bool, CUnicode, Dict, Enum, HasTraits, Instance, List, Unicode
 from typing import Callable, NoReturn, Union
+from uuid import uuid4
+
+from ipywidgets import (CallbackDispatcher, DOMWidget, Widget,
+                        widget_serialization)
+from ipywidgets.widgets.widget_media import _Media
+from traitlets import (Bool, CUnicode, Dict, Enum, HasTraits, Instance, List,
+                       Unicode)
 
 from ._frontend import module_name, module_version
 
@@ -97,13 +101,15 @@ class Annotator(_Media):
 
     def append_annotation(self, annotation: dict) -> NoReturn:
         """Add an annotation."""
+        if "id" not in annotation:
+            annotation["id"] = f"#{uuid4()!s}"
         self.update_annotation(annotation)
 
     def update_annotation(self, annotation: dict) -> NoReturn:
         """Update an annotation."""
         indexes = [a["id"] for a in self.annotations]
         try:
-            index = indexes.index(annotation["id"])
+            index = indexes.index(annotation.get("id", ""))
         except ValueError:
             self.annotations.append(annotation)
         else:
