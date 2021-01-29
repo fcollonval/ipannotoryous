@@ -13,11 +13,17 @@ You can install using `pip`:
 pip install ipannotoryous
 ```
 
-Or if you use jupyterlab:
+Or if you use JupyterLab 3:
 
 ```bash
 pip install ipannotoryous
-jupyter labextension install @jupyter-widgets/jupyterlab-manager
+```
+
+Or if you use JupyterLab 2:
+
+```bash
+pip install ipannotoryous
+jupyter labextension install @jupyter-widgets/jupyterlab-manager ipannotoryous
 ```
 
 If you are using Jupyter Notebook 5.2 or earlier, you may also need to enable
@@ -35,11 +41,10 @@ pip install -e ".[test, examples]"
 ```
 
 When developing your extensions, you need to manually enable your extensions with the
-notebook / lab frontend. For lab, this is done by the command:
+notebook / lab frontend. For JupyterLab 3, this is done by the command:
 
 ```
-jupyter labextension install @jupyter-widgets/jupyterlab-manager --no-build
-jupyter labextension install .
+jupyter labextension develop . --overwrite
 ```
 
 For classic notebook, you can run:

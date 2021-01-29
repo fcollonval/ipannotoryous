@@ -4,114 +4,100 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
 
-from __future__ import print_function
-from glob import glob
-from os.path import join as pjoin
+import json
+from pathlib import Path
 
-
-from setupbase import (
-    create_cmdclass, install_npm, ensure_targets,
-    find_packages, combine_commands, ensure_python,
-    get_version, HERE
+from jupyter_packaging import (
+    create_cmdclass,
+    install_npm,
+    ensure_targets,
+    combine_commands,
+    skip_if_exists,
+    get_version,
 )
+import setuptools
 
-from setuptools import setup
 
+HERE = Path(__file__).parent.resolve()
 
 # The name of the project
-name = 'ipannotoryous'
-
-# Ensure a valid python version
-ensure_python('>=3.6')
+name = "ipannotoryous"
 
 # Get our version
-version = get_version(pjoin(name, '_version.py'))
+version = get_version(str(HERE / name / "_version.py"))
 
-nb_path = pjoin(HERE, name, 'nbextension', 'static')
-lab_path = pjoin(HERE, name, 'labextension')
+nb_path = HERE / name / "nbextension" / "static"
+lab_path = HERE / name / "labextension"
 
 # Representative files that should exist after a successful build
-jstargets = [
-    pjoin(nb_path, 'index.js'),
-    pjoin(HERE, 'lib', 'plugin.js'),
-]
+jstargets = [str(nb_path / "index.js"), str(lab_path / "package.json")]
 
-package_data_spec = {
-    name: [
-        'nbextension/static/*.*js*',
-        'labextension/*.tgz'
-    ]
-}
+package_data_spec = {name: ["nbextension/static/*.*js*", "labextension/**"]}
 
 data_files_spec = [
-    ('share/jupyter/nbextensions/ipannotoryous',
-        nb_path, '*.js*'),
-    ('share/jupyter/lab/extensions', lab_path, '*.tgz'),
-    ('etc/jupyter/nbconfig/notebook.d' , HERE, 'ipannotoryous.json')
+    ("share/jupyter/nbextensions/ipannotoryous", str(nb_path), "*.js*"),
+    ("share/jupyter/labextensions/ipannotoryous", str(lab_path), "**"),
+    ("etc/jupyter/nbconfig/notebook.d", str(HERE), "ipannotoryous.json"),
 ]
 
 
-cmdclass = create_cmdclass('jsdeps', package_data_spec=package_data_spec,
-    data_files_spec=data_files_spec)
-cmdclass['jsdeps'] = combine_commands(
-    install_npm(HERE, build_cmd='build:all'),
+cmdclass = create_cmdclass(
+    "jsdeps", package_data_spec=package_data_spec, data_files_spec=data_files_spec
+)
+js_command = combine_commands(
+    install_npm(HERE, npm=["yarn"], build_cmd="build:all"),
     ensure_targets(jstargets),
 )
 
+is_repo = (HERE / ".git").exists()
+if is_repo:
+    cmdclass["jsdeps"] = js_command
+else:
+    cmdclass["jsdeps"] = skip_if_exists(jstargets, js_command)
 
 setup_args = dict(
-    name            = name,
-    description     = 'A annotation Jupyter Widget based on Annotorius.',
-    version         = version,
-    scripts         = glob(pjoin('scripts', '*')),
-    cmdclass        = cmdclass,
-    packages        = find_packages(),
-    author          = 'ARIADNEXT',
-    author_email    = 'fcollonval@gmail.com',
-    url             = 'https://github.com//ipannotoryous',
-    license         = 'BSD',
-    platforms       = "Linux, Mac OS X, Windows",
-    keywords        = ['Jupyter', 'Widgets', 'IPython'],
-    classifiers     = [
-        'Intended Audience :: Developers',
-        'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
-        'Framework :: Jupyter',
+    name=name,
+    description="A annotation Jupyter Widget based on Annotorius.",
+    version=version,
+    cmdclass=cmdclass,
+    packages=setuptools.find_packages(),
+    author="ARIADNEXT",
+    author_email="fcollonval@gmail.com",
+    url="https://github.com//ipannotoryous",
+    license="BSD",
+    platforms="Linux, Mac OS X, Windows",
+    keywords=["Jupyter", "Widgets", "IPython"],
+    classifiers=[
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Framework :: Jupyter",
     ],
-    include_package_data = True,
-    install_requires = [
-        'ipywidgets>=7.0.0',
-    ],
-    extras_require = {
-        'test': [
-            'pytest>=4.6',
-            'pytest-asyncio',
-            'pytest-cov',
-            'nbval',
+    zip_safe=False,
+    include_package_data=True,
+    python_requires=">=3.6",
+    install_requires=["ipywidgets>=7.0.0"],
+    extras_require={
+        "test": ["pytest>=4.6", "pytest-asyncio", "pytest-cov", "nbval"],
+        "examples": [],
+        "docs": [
+            "sphinx>=1.5",
+            "recommonmark",
+            "sphinx_rtd_theme",
+            "nbsphinx>=0.2.13,<0.4.0",
+            "jupyter_sphinx",
+            "nbsphinx-link",
+            "pytest_check_links",
+            "pypandoc",
         ],
-        'examples': [
-            # Any requirements for the examples to run
-        ],
-        'docs': [
-            'sphinx>=1.5',
-            'recommonmark',
-            'sphinx_rtd_theme',
-            'nbsphinx>=0.2.13,<0.4.0',
-            'jupyter_sphinx',
-            'nbsphinx-link',
-            'pytest_check_links',
-            'pypandoc',
-        ],
-    },
-    entry_points = {
     },
 )
 
-if __name__ == '__main__':
-    setup(**setup_args)
+if __name__ == "__main__":
+    setuptools.setup(**setup_args)
