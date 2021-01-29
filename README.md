@@ -8,7 +8,7 @@
 
 An annotation Jupyter Widget based on [Annotorius](https://github.com/recogito/annotorious).
 
-![demo](https://raw.githubusercontent.com/jupyterlab-contrib/ipannotoryous/master/demo_annotator.png)
+![demo](https://raw.githubusercontent.com/fcollonval/ipannotoryous/master/demo_annotator.png)
 
 ## Installation
 
@@ -18,13 +18,7 @@ You can install using `pip`:
 pip install ipannotoryous
 ```
 
-Or if you use JupyterLab 3:
-
-```bash
-pip install ipannotoryous
-```
-
-Or if you use JupyterLab 2:
+Or if you use JupyterLab < 3:
 
 ```bash
 pip install ipannotoryous
