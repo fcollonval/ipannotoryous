@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/ipannotoryous)](https://pypi.org/project/ipannotoryous)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/ipannotoryous)](https://anaconda.org/conda-forge/ipannotoryous)
 
-An annotation Jupyter Widget based on [Annotorius](https://github.com/recogito/annotorious).
+An annotation Jupyter Widget based on [Annotorious](https://github.com/recogito/annotorious).
 
 ![demo](https://raw.githubusercontent.com/fcollonval/ipannotoryous/master/demo_annotator.png)
 
