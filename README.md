@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/fcollonval/ipannotoryous/workflows/Build/badge.svg)](https://github.com/fcollonval/ipannotoryous/actions?query=workflow%3ABuild)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/ipannotoryous/master?urlpath=lab&filepath=examples/introduction.ipynb)
 
-A annotation Jupyter Widget based on Annotorius.
+An annotation Jupyter Widget based on [Annotorius](https://github.com/recogito/annotorious).
 
 ## Installation
 

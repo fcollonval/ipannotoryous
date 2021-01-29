@@ -4,7 +4,7 @@ ipannotoryous
 
 Version: |release|
 
-A annotation Jupyter Widget based on Annotorius.
+An annotation Jupyter Widget based on `Annotorius <https://github.com/recogito/annotorious>`_.
 
 
 Quickstart
@@ -23,15 +23,10 @@ Contents
 --------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Installation and usage
 
    installing
-   introduction
-
-.. toctree::
-   :maxdepth: 1
-
    examples/index
 
 

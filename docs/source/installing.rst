@@ -22,14 +22,11 @@ notebook (as opposed to Jupyterlab), run::
 
     jupyter nbextension enable [--sys-prefix / --user / --system] --py ipannotoryous
 
-with the `appropriate flag`_. If you are using Jupyterlab, install the extension
-with::
+with the `appropriate flag`_. 
 
-    jupyter labextension install ipannotoryous
+If you are using Jupyterlab < 3, you will need to execute the following commands::
 
-If you are installing using conda, these commands should be unnecessary, but If
-you need to run them the commands should be the same (just make sure you choose the
-`--sys-prefix` flag).
+    jupyter labextension install @jupyter-widgets/jupyterlab-manager ipannotoryous
 
 
 .. links

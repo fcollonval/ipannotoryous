@@ -9,9 +9,9 @@ the repository::
     git clone https://github.com//ipannotoryous
     cd ipannotoryous
 
-Next, install it with a develop install using pip::
+Next, install it with a develop install using pip (this requires nodejs and yarn)::
 
-    pip install -e .
+    pip install -e .[test, examples]
 
 
 If you are planning on working on the JS/frontend code, you should also do
@@ -23,7 +23,7 @@ a link installation of the extension::
 
 with the `appropriate flag`_. Or, if you are using Jupyterlab::
 
-    jupyter labextension install .
+    jupyter labextension develop . --overwrite
 
 
 .. links

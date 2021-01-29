@@ -29,9 +29,13 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'nbsphinx',
-    'jupyter_sphinx.execute',
+    'jupyter_sphinx',
     'nbsphinx_link',
 ]
+
+# Set the nbsphinx JS path to empty to avoid showing twice of the widgets
+nbsphinx_requirejs_path = ""
+nbsphinx_widgets_path = ""
 
 # Ensure our extension is available:
 import sys
