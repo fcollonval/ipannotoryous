@@ -1,8 +1,6 @@
-
 # ipannotoryous
 
-[![Build Status](https://travis-ci.org//ipannotoryous.svg?branch=master)](https://travis-ci.org//ipannotoryous)
-[![codecov](https://codecov.io/gh//ipannotoryous/branch/master/graph/badge.svg)](https://codecov.io/gh//ipannotoryous)
+[![Build Status](https://github.com/fcollonval/ipannotoryous/workflows/Build/badge.svg)](https://github.com/fcollonval/ipannotoryous/actions?query=workflow%3ABuild)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/ipannotoryous/master?urlpath=lab&filepath=examples/introduction.ipynb)
 
 A annotation Jupyter Widget based on Annotorius.
@@ -24,12 +22,12 @@ jupyter labextension install @jupyter-widgets/jupyterlab-manager
 
 If you are using Jupyter Notebook 5.2 or earlier, you may also need to enable
 the nbextension:
+
 ```bash
 jupyter nbextension enable --py [--sys-prefix|--user|--system] ipannotoryous
 ```
 
 ## Development Installation
-
 
 ```bash
 # First install the python package. This will also build the JS packages.
@@ -57,12 +55,17 @@ you might also need another flag instead of `--sys-prefix`, but we won't cover t
 of those flags here.
 
 ### How to see your changes
+
 #### Typescript:
+
 To continuously monitor the project for changes and automatically trigger a rebuild, start Jupyter in watch mode:
+
 ```bash
 jupyter lab --watch
 ```
+
 And in a separate session, begin watching the source directory for changes:
+
 ```bash
 npm run watch
 ```
@@ -70,4 +73,5 @@ npm run watch
 After a change wait for the build to finish and then refresh your browser and the changes should take effect.
 
 #### Python:
+
 If you make a change to the python code then you will need to restart the notebook kernel to have it take effect.

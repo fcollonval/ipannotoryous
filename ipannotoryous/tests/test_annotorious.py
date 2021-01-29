@@ -5,7 +5,7 @@
 # Distributed under the terms of the Modified BSD License.
 from copy import deepcopy
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pytest
@@ -242,3 +242,39 @@ def test_annotator_on_delete_annotation(mock_comm, annotation):
     assert w.annotations == []
     callback.assert_called_once_with(annotation=annotation)
 
+
+def test_annotator_get_annotation_image(mock_comm, annotation, event_loop):
+    w = Annotator.from_file(TEST_FILE.absolute().resolve(), comm=mock_comm)
+    w.append_annotation(annotation)
+
+    with patch("asyncio.get_running_loop") as get_loop:
+        get_loop.return_value = event_loop
+        future = w.get_annotation_image(annotation)
+
+    assert len(mock_comm.log_send) == 3
+    comm_payload = mock_comm.log_send[-1][1]
+
+    assert comm_payload["buffers"] is None
+    assert comm_payload["data"]["method"] == "custom"
+    content = comm_payload["data"]["content"]
+    assert content["action"] == "image_snippet"
+    assert content["annotation"] == annotation
+    assert "uid" in content
+
+    # Mock reply
+    binary_image = b"blablabla"
+    mock_comm.handle_msg(
+        {
+            "content": {
+                "data": {
+                    "method": "custom",
+                    "content": {"event": "imageSnippet", "uid": content["uid"]},
+                }
+            },
+            "buffers": [binary_image],
+        }
+    )
+
+    event_loop.run_until_complete(future)
+
+    assert future.result() == binary_image

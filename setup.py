@@ -91,6 +91,7 @@ setup_args = dict(
     extras_require = {
         'test': [
             'pytest>=4.6',
+            'pytest-asyncio',
             'pytest-cov',
             'nbval',
         ],
