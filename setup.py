@@ -55,10 +55,14 @@ if is_repo:
 else:
     cmdclass["jsdeps"] = skip_if_exists(jstargets, js_command)
 
+long_description = (HERE / "README.md").read_text()
+
 setup_args = dict(
     name=name,
-    description="A annotation Jupyter Widget based on Annotorius.",
     version=version,
+    description="A annotation Jupyter Widget based on Annotorius.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     cmdclass=cmdclass,
     packages=setuptools.find_packages(),
     author="ARIADNEXT",

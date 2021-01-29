@@ -1,9 +1,14 @@
 # ipannotoryous
 
 [![Build Status](https://github.com/fcollonval/ipannotoryous/workflows/Build/badge.svg)](https://github.com/fcollonval/ipannotoryous/actions?query=workflow%3ABuild)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/ipannotoryous/master?urlpath=lab&filepath=examples/introduction.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/ipannotoryous/master?urlpath=lab/tree/examples/introduction.ipynb)
+[![npm](https://img.shields.io/npm/v/ipannotoryous)](https://www.npmjs.com/package/ipannotoryous)
+[![PyPI](https://img.shields.io/pypi/v/ipannotoryous)](https://pypi.org/project/ipannotoryous)
+[![conda-forge](https://img.shields.io/conda/vn/conda-forge/ipannotoryous)](https://anaconda.org/conda-forge/ipannotoryous)
 
 An annotation Jupyter Widget based on [Annotorius](https://github.com/recogito/annotorious).
+
+![demo](https://raw.githubusercontent.com/jupyterlab-contrib/ipannotoryous/master/demo_annotator.png)
 
 ## Installation
 
