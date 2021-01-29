@@ -93,9 +93,10 @@ class Annotator(_Media):
     headless = Bool(
         default_value=False, help="Whether to disable the editor popup or not."
     ).tag(sync=True)
-    readOnly = Bool(
-        default_value=False, help="Whether to display the annotations as read-only."
-    ).tag(sync=True)
+    # FIXME
+    # readOnly = Bool(
+    #     default_value=False, help="Whether to display the annotations as read-only."
+    # ).tag(sync=True)
     template = List(
         trait=Dict,
         default_value=[],
