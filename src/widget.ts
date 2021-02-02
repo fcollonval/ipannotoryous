@@ -268,7 +268,7 @@ export class AnnotoriusView extends DOMWidgetView {
 
     // Tune notebook elements to display editor properly
     this.displayed.then(() => {
-      this._updateParentOverflowStyle('visible');
+      this._updateParentOverflowStyle('visible !important');
     });
     // Connect Python event
     // FIXME is it a good idea to let user change dynamically the image and/or its size
