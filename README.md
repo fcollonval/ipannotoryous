@@ -18,6 +18,8 @@ You can install using `pip`:
 pip install ipannotoryous
 ```
 
+> You can also use `conda`: `conda install ipannotoryous`
+
 Or if you use JupyterLab < 3:
 
 ```bash
